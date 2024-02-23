@@ -4,8 +4,8 @@
 
 // Default pwm signals (percentage-% of power 0-100) for both RSLK motor.
 // Change these values as needed
-#define LEFT_MOTOR_SPEED    70    // Speed percentage
-#define RIGHT_MOTOR_SPEED   70    // Speed percentage
+#define LEFT_MOTOR_SPEED    100    // Speed percentage
+#define RIGHT_MOTOR_SPEED   100    // Speed percentage
 #define LEFT_TURN_SPEED     30    // Speed percentage
 #define RIGHT_TURN_SPEED    30    // Speed percentage
 
@@ -20,7 +20,7 @@
 /* Place code here to only run once ***********************************************/
 void setup() {
   //Do not edit this setup function
-  Serial.begin(9600);         // Start serial com at 9600 baud rate
+  Serial.begin(19200);         // Start serial com at 9600 baud rate
   setupRSLK();                // Initialize RSLK functions and classes
   setupWaitBtn(LP_LEFT_BTN);  // Setup left button on Launchpad
   setupLed(RED_LED);          // Red led in rgb led
@@ -136,9 +136,9 @@ void forward(float travel_dist) {
 
 
   
-  float kp = .24;
-  float ki = 0.00034;
-  float kd = 55;
+  float kp = .242;
+  float ki = 0.00039;
+  float kd = 56;
   //Put your code here that will rely on motor encoders to drive your robot straight for a specified distance
   resetLeftEncoderCnt();
   resetRightEncoderCnt();
@@ -190,6 +190,7 @@ void forward(float travel_dist) {
     setRawMotorSpeed(RIGHT_MOTOR, rightSpeed);
 
     delay(50);
+    Serial.println("Left Enc: " + String(leftCnt) + "  Right Enc:  " + String(rightCnt));
   }
 
   disableMotor(BOTH_MOTORS);
