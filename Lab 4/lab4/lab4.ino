@@ -4,10 +4,10 @@
 
 // Default pwm signals (percentage-% of power 0-100) for both RSLK motor.
 // Change these values as needed
-#define LEFT_MOTOR_SPEED    15    // Speed percentage
-#define RIGHT_MOTOR_SPEED   15    // Speed percentage
-#define LEFT_TURN_SPEED     12    // Speed percentage
-#define RIGHT_TURN_SPEED    12    // Speed percentage
+#define LEFT_MOTOR_SPEED    70    // Speed percentage
+#define RIGHT_MOTOR_SPEED   70    // Speed percentage
+#define LEFT_TURN_SPEED     30    // Speed percentage
+#define RIGHT_TURN_SPEED    30    // Speed percentage
 
 // Value for turning directions (do not change)
 #define CCW                  1     // rotate robot counter clockwise
@@ -40,7 +40,7 @@ void loop() {
     rotate(CCW, 360);
     forward(90);
   ************************************************************************************/
-  forward(500);
+  forward(200);
 }
 
 /* Function Name: rotate
@@ -73,8 +73,8 @@ void rotate(int rotate_dir, int rotate_deg) {
 
   }
   enableMotor(BOTH_MOTORS);
-  setMotorSpeed(LEFT_MOTOR, LEFT_TURN_SPEED);
-  setMotorSpeed(RIGHT_MOTOR, RIGHT_TURN_SPEED);
+  setRawMotorSpeed(LEFT_MOTOR, LEFT_TURN_SPEED);
+  setRawMotorSpeed(RIGHT_MOTOR, RIGHT_TURN_SPEED);
   while (leftCount < targetCount || rightCount < targetCount) {
     leftCount = getEncoderLeftCnt();
     rightCount = getEncoderRightCnt();
@@ -87,8 +87,8 @@ void rotate(int rotate_dir, int rotate_deg) {
 /* Function Name: pid
    Input: 2 int inputs, 3 double inputs
    Return: int value
-   Details: Implements PID Control to calculate an 
-   adjustment to be added to the input of a system based 
+   Details: Implements PID Control to calculate an
+   adjustment to be added to the input of a system based
    on the error detected at the output of the system.
    Requires 3 input parameters to be tuned for the system.
 */
@@ -114,7 +114,7 @@ int pid(int setpoint, int input, double kp, double ki, double kd) {
   lastErrorCalculated = error;
 
   int adjustment = prop + integral + derivative;
-  
+
 
   //Serial.println("e: " + String(error) + " p: " + String(prop) + " i: " + String(integral) +  " d: " + String(derivative) + " sum: " +  String(adjustment));
   return adjustment;
@@ -123,20 +123,22 @@ int pid(int setpoint, int input, double kp, double ki, double kd) {
 
 
 /* Function Name: forward
-   Input: 1 float input 
+   Input: 1 float input
    Return: void
    Details: Function called to command robot to move forward for the distance--in centimeters-- specified by the user.
-   Uses PID Control to ensure robot drives straight 
+   Uses PID Control to ensure robot drives straight
 */
 void forward(float travel_dist) {
 
 
-  int minSpeed = 5;
-  int maxSpeed = 65;
+  int minSpeed = 12;
+  int maxSpeed = 200;
 
-  float kp = 0.396;
-  float ki = 0.0005;
-  float kd = 49.8;
+
+  
+  float kp = .24;
+  float ki = 0.00034;
+  float kd = 55;
   //Put your code here that will rely on motor encoders to drive your robot straight for a specified distance
   resetLeftEncoderCnt();
   resetRightEncoderCnt();
@@ -165,15 +167,14 @@ void forward(float travel_dist) {
     int adjustment = pid(0, error, kp, ki, kd);
 
     leftSpeed += adjustment;
+    rightSpeed -= adjustment;
 
     if (leftSpeed < minSpeed) {
       //blinkRedLED(50);
 
       leftSpeed = minSpeed;
-
-
-
     }
+
 
     if (leftSpeed > maxSpeed) {
       leftSpeed = maxSpeed;
@@ -181,9 +182,12 @@ void forward(float travel_dist) {
       //blinkLED(50);
     }
 
+    if (rightSpeed < minSpeed) rightSpeed = minSpeed;
+    if (rightSpeed > maxSpeed) rightSpeed = maxSpeed;
 
-    setMotorSpeed(LEFT_MOTOR, leftSpeed);
-    setMotorSpeed(RIGHT_MOTOR, rightSpeed);
+
+    setRawMotorSpeed(LEFT_MOTOR, leftSpeed);
+    setRawMotorSpeed(RIGHT_MOTOR, rightSpeed);
 
     delay(50);
   }
