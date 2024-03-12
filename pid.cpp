@@ -1,3 +1,4 @@
+
 class Pid {
 public:
   double kp;
@@ -5,37 +6,48 @@ public:
   double kd;
 
   unsigned long lastTime;
-  int lastError;
+  float lastErrorCalc;
   double cumulativeError;
 
-  Pid(double kp, double ki, double kd) {
+  Pid(double kpIn, double kiIn, double kdIn) {
     lastTime = millis();
-    lastError = 0;
+    lastErrorCalc = 0;
     cumulativeError = 0;
+
+    kp=kpIn;
+    ki=kiIn;
+    kd=kdIn;
   }
 
-  int getAdjustment(int setpoint, int input) {
+  void resetPid() {
+    lastTime = millis();
+    lastErrorCalc = 0;
+    cumulativeError = 0;
+
+  }
+
+  int getAdjustment(float setpoint, float input) {
     unsigned long currentTime = millis();
     double deltaTime = (double)(currentTime - lastTime);
     lastTime = currentTime;
 
-    int error = input - setpoint;
+    float error = input - setpoint;
+
+    if (error < minError) return 0;
 
     float prop = kp * error;
+    
     cumulativeError += error * deltaTime;
-
     float integral = cumulativeError * ki;
 
-    float derivative = ((error - lastError) / deltaTime) * kd;
-
-    lastError = error;
+    float derivative = ((error - lastErrorCalc) / deltaTime) * kd;
+    lastErrorCalc = error;
 
     int adjustment = prop + integral + derivative;
 
 
-    //Serial.println("e: " + String(error) + " p: " + String(prop) + " i: " + String(integral) +  " d: " + String(derivative) + " sum: " +  String(adjustment));
+    Serial.println("e: " + String(error) + " p: " + String(prop) + " i: " + String(integral) +  " d: " + String(derivative) + " sum: " +  String(adjustment));
     return adjustment;
 
   }
   
-};
