@@ -37,9 +37,6 @@ void loop() {
    String btnMsg = "Expected Total Pulse Count: ";
   // put your main code here, to run repeatedly: 
   waitBtnPressed(LP_LEFT_BTN,btnMsg,RED_LED);
-  //rotate(CCW, 90);
-  //driveCircle(LEFT_MOTOR_SPEED, RIGHT_MOTOR_SPEED, LEFT_TRAVEL_DISTANCE, RIGHT_TRAVEL_DISTANCE);
-  //forward(500);
 
     forward(45.72);
     rotate(CCW, 45);
@@ -200,20 +197,12 @@ uint32_t countForDistance(float wheel_diam, uint16_t cnt_per_rev, float distance
 }
 
 void driveCircle(int Left_Wheel_Speed, int Right_Wheel_Speed, float Left_Travel_Dist, float Right_Travel_Dist){
-//  int minSpeed = 5;
-//  int maxSpeed = 65;
-//
-//  float kp = 50.0;
-//  float ki = 0.4;
-//  float kd = 0.0;
-    
+  
   int rightTargetSpeed = (Left_Wheel_Speed * (OUTSIDE_WHEEL_RATIO)) + 0.5;
   int leftTargetSpeed = Left_Wheel_Speed;
 
   int leftTargetCnt = countForDistance(wheelDiameter, cntPerRevolution, Left_Travel_Dist);
   int rightTargetCnt = countForDistance(wheelDiameter, cntPerRevolution, Right_Travel_Dist);
-
-//  int difference = rightTargetCnt - leftTargetCnt;
   
   resetLeftEncoderCnt();
   resetRightEncoderCnt();
@@ -228,23 +217,9 @@ void driveCircle(int Left_Wheel_Speed, int Right_Wheel_Speed, float Left_Travel_
 
   while((leftCnt <= leftTargetCnt) || (rightCnt <= rightTargetCnt)){
     // TO-DO: Impliment PID.....
-    
-    rightCnt = getEncoderRightCnt();
-    leftCnt = getEncoderLeftCnt();
+     rightCnt = getEncoderRightCnt();
+     leftCnt = getEncoderLeftCnt();
 
-//    int error = rightCnt - leftCnt;
-//
-//    int adjustment = pid(difference, error, kp, ki, kd);
-//
-//    rightTargetSpeed +=adjustment;
-//
-//    if(rightTargetSpeed < minSpeed){
-//      rightTargetSpeed = minSpeed;
-//    }
-//
-//    if(rightTargetSpeed > maxSpeed){
-//      rightTargetSpeed = maxSpeed;
-//    }
      setRawMotorSpeed(LEFT_MOTOR, leftTargetSpeed);
      setRawMotorSpeed(RIGHT_MOTOR, rightTargetSpeed);
     }
