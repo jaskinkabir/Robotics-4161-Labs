@@ -1,7 +1,9 @@
 #include "SimpleRSLK.h"
 
-#define LEFT_MOTOR_SPEED    15    // Speed percentage
-#define RIGHT_MOTOR_SPEED   15    // Speed percentage
+#define LEFT_MOTOR_SPEED_RAW    50    // Raw Speed 
+#define RIGHT_MOTOR_SPEED_RAW   50    // Raw Speed 
+#define RIGHT_MOTOR_SPEED       20    // Speed Percentage
+#define LEFT_MOTOR_SPEED        20    //Speed Percentage
 #define LEFT_TURN_SPEED     12    // Speed percentage
 #define RIGHT_TURN_SPEED    12    // Speed percentage
 
@@ -13,8 +15,15 @@
 #define wheelDiameter       6.999      // in centimeters
 #define cntPerRevolution    360        // Number of encoder (rising) pulses every time the 
 
-#define BASE_DIAMETER       14 // Diameter of the wheel base on the RSLK robot   
-#define OUTSIDE_WHEEL_RATIO 1.26
+#define BASE_R         7 // Radius of the wheel base on the RSLK robot   
+#define BASE_D         14
+#define CIRCLE_R_IN           18
+#define CIRCLE_R_CM           CIRCLE_R_IN*2.54
+#define CIRCLE_D_CM           CIRCLE_R_CM * 2
+#define LEFT_TRAVEL_DISTANCE  (CIRCLE_R_CM - BASE_R)*2*PI*0.75
+#define RIGHT_TRAVEL_DISTANCE (CIRCLE_R_CM + BASE_R)*2*PI*0.75
+#define OUTSIDE_WHEEL_RATIO   (CIRCLE_D_CM + BASE_D)/(CIRCLE_D_CM - BASE_D)
+
 void setup() {
   Serial.begin(9600);         // Start serial com at 9600 baud rate
   setupRSLK();                // Initialize RSLK functions and classes
@@ -29,11 +38,19 @@ void loop() {
   // put your main code here, to run repeatedly: 
   waitBtnPressed(LP_LEFT_BTN,btnMsg,RED_LED);
   //rotate(CCW, 90);
-  setMotorDirection(BOTH_MOTORS, MOTOR_DIR_FORWARD);
-  setMotorSpeed(LEFT_MOTOR, 20);
-  setMotorSpeed(RIGHT_MOTOR, 10);
-  enableMotor(BOTH_MOTORS);
-  delay(1000);
+  //driveCircle(LEFT_MOTOR_SPEED, RIGHT_MOTOR_SPEED, LEFT_TRAVEL_DISTANCE, RIGHT_TRAVEL_DISTANCE);
+  //forward(500);
+
+    forward(45.72);
+    rotate(CCW, 45);
+    forward(45.72);
+    rotate(CCW, 90);
+    driveCircle(LEFT_MOTOR_SPEED_RAW, RIGHT_MOTOR_SPEED_RAW, LEFT_TRAVEL_DISTANCE, RIGHT_TRAVEL_DISTANCE);
+    rotate(CCW, 90);
+    forward(45.72);
+    rotate(CCW, 45);
+    forward(45.72);
+    rotate(CCW, 180);
 }
 
 void startProgram(){
@@ -56,7 +73,7 @@ int blinkLED(int period){
 void rotate(int rotate_dir, int rotate_deg) {
   //Put your code here that will rely on motor encoders for accurately rotating in place
   uint32_t robot_base_diam = 14.0;
-  uint32_t distance = (robot_base_diam * PI) * (rotate_deg / 360.0);
+  float distance = (robot_base_diam * PI) * (rotate_deg / 360.0);
   uint32_t targetCount = countForDistance(wheelDiameter, cntPerRevolution, distance);
   resetLeftEncoderCnt();
   resetRightEncoderCnt();
@@ -183,12 +200,20 @@ uint32_t countForDistance(float wheel_diam, uint16_t cnt_per_rev, float distance
 }
 
 void driveCircle(int Left_Wheel_Speed, int Right_Wheel_Speed, float Left_Travel_Dist, float Right_Travel_Dist){
-  int rightTargetSpeed = (Right_Wheel_Speed * (OUTSIDE_WHEEL_RATIO)) + 0.5;
+//  int minSpeed = 5;
+//  int maxSpeed = 65;
+//
+//  float kp = 50.0;
+//  float ki = 0.4;
+//  float kd = 0.0;
+    
+  int rightTargetSpeed = (Left_Wheel_Speed * (OUTSIDE_WHEEL_RATIO)) + 0.5;
   int leftTargetSpeed = Left_Wheel_Speed;
 
   int leftTargetCnt = countForDistance(wheelDiameter, cntPerRevolution, Left_Travel_Dist);
   int rightTargetCnt = countForDistance(wheelDiameter, cntPerRevolution, Right_Travel_Dist);
 
+//  int difference = rightTargetCnt - leftTargetCnt;
   
   resetLeftEncoderCnt();
   resetRightEncoderCnt();
@@ -201,12 +226,28 @@ void driveCircle(int Left_Wheel_Speed, int Right_Wheel_Speed, float Left_Travel_
   
   enableMotor(BOTH_MOTORS);
 
-  while((leftCnt <= leftTargetCnt) && (rightCnt <= rightTargetCnt)){
+  while((leftCnt <= leftTargetCnt) || (rightCnt <= rightTargetCnt)){
     // TO-DO: Impliment PID.....
+    
     rightCnt = getEncoderRightCnt();
     leftCnt = getEncoderLeftCnt();
-    setMotorSpeed(LEFT_MOTOR, leftTargetSpeed);
-    setMotorSpeed(RIGHT_MOTOR, rightTargetSpeed);
-    delay(10); 
-  }
+
+//    int error = rightCnt - leftCnt;
+//
+//    int adjustment = pid(difference, error, kp, ki, kd);
+//
+//    rightTargetSpeed +=adjustment;
+//
+//    if(rightTargetSpeed < minSpeed){
+//      rightTargetSpeed = minSpeed;
+//    }
+//
+//    if(rightTargetSpeed > maxSpeed){
+//      rightTargetSpeed = maxSpeed;
+//    }
+     setRawMotorSpeed(LEFT_MOTOR, leftTargetSpeed);
+     setRawMotorSpeed(RIGHT_MOTOR, rightTargetSpeed);
+    }
+  disableMotor(BOTH_MOTORS);
+  delay(2000);
 }
