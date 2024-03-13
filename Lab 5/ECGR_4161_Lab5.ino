@@ -176,13 +176,37 @@ void forward(float travel_dist) {
    Details: Function called to calculate the number of pulses need to travel a specified
             distance by the user input variable "distance."
 */
-uint32_t countForDistance(float wheel_diam, uint16_t cnt_per_rev, uint32_t distance) {
+uint32_t countForDistance(float wheel_diam, uint16_t cnt_per_rev, float distance) {
   float temp = (wheel_diam * PI) / cnt_per_rev;
   temp = distance / temp;
   return int(temp);
 }
 
 void driveCircle(int Left_Wheel_Speed, int Right_Wheel_Speed, float Left_Travel_Dist, float Right_Travel_Dist){
-  int rightTarget = (Right_Wheel_Speed * (OUTSIDE_WHEEL_RATIO)) + 0.5;
+  int rightTargetSpeed = (Right_Wheel_Speed * (OUTSIDE_WHEEL_RATIO)) + 0.5;
+  int leftTargetSpeed = Left_Wheel_Speed;
+
+  int leftTargetCnt = countForDistance(wheelDiameter, cntPerRevolution, Left_Travel_Dist);
+  int rightTargetCnt = countForDistance(wheelDiameter, cntPerRevolution, Right_Travel_Dist);
+
   
+  resetLeftEncoderCnt();
+  resetRightEncoderCnt();
+
+  setMotorDirection(RIGHT_MOTOR, MOTOR_DIR_FORWARD);
+  setMotorDirection(LEFT_MOTOR, MOTOR_DIR_FORWARD);
+  
+  int leftCnt = 0;
+  int rightCnt = 0;
+  
+  enableMotor(BOTH_MOTORS);
+
+  while((leftCnt <= leftTargetCnt) && (rightCnt <= rightTargetCnt)){
+    // TO-DO: Impliment PID.....
+    rightCnt = getEncoderRightCnt();
+    leftCnt = getEncoderLeftCnt();
+    setMotorSpeed(LEFT_MOTOR, leftTargetSpeed);
+    setMotorSpeed(RIGHT_MOTOR, rightTargetSpeed);
+    delay(10); 
+  }
 }
